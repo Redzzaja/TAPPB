@@ -1,21 +1,37 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+import { Poppins } from "next/font/google";
 import "./globals.css";
-import Navigation from "@/components/Navigation";
+import { Toaster } from "sonner";
+import Sidebar from "@/components/Sidebar";
+import PageAnimate from "@/components/PageAnimate";
 
-const inter = Inter({ subsets: ["latin"] });
+// PERBAIKAN 1: Gunakan nama variabel 'poppins' (kecil) agar tidak bentrok dengan import
+const poppins = Poppins({
+  subsets: ["latin"],
+  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
+});
+
+export const viewport: Viewport = {
+  themeColor: "#84CC16",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+};
 
 export const metadata: Metadata = {
   title: "Meal Planner PWA",
   description: "Rencanakan makanan sehatmu mingguan",
   manifest: "/manifest.json",
-};
-
-export const viewport: Viewport = {
-  themeColor: "#84cc16", // Warna status bar HP
-  width: "device-width",
-  initialScale: 1,
-  maximumScale: 1, // Mencegah zoom saat input di HP
+  // PERBAIKAN 2: Struktur metadata PWA yang benar untuk Next.js terbaru
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "MealPlan",
+  },
+  icons: {
+    icon: "/icons/icon-192x192.png",
+    apple: "/icons/icon-192x192.png",
+  },
 };
 
 export default function RootLayout({
@@ -25,17 +41,26 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="id">
-      <body className={`${inter.className} bg-gray-50 text-gray-800`}>
-        {/* Komponen Navigasi (Sidebar / Bottom Bar) */}
-        <Navigation />
+      <body className={`${poppins.className} bg-gray-50 text-gray-800`}>
+        <div className="flex min-h-screen">
+          {/* Sidebar (yang sudah ada class 'peer') */}
+          <Sidebar />
 
-        {/* Area Konten Utama:
-          - md:ml-64 : Memberi jarak kiri 64 unit di Desktop (karena ada Sidebar)
-          - pb-24    : Memberi jarak bawah di Mobile (agar tidak tertutup Bottom Bar)
-        */}
-        <main className="md:ml-64 min-h-screen pb-24 md:pb-8 pt-6 px-4 md:px-8 max-w-7xl mx-auto">
-          {children}
-        </main>
+          {/* Konten Utama */}
+          {/* PERUBAHAN: 
+             1. peer-hover:md:ml-[280px] -> Jika sidebar di-hover, margin kiri jadi 280px
+             2. transition-all duration-300 -> Agar gesernya halus (animasi)
+             3. ease-in-out -> Agar gerakan natural
+          */}
+          <main className="flex-1 md:ml-20 min-h-screen relative w-full transition-all duration-300 ease-in-out">
+            <div className="px-4 py-6 md:px-10 md:py-10 max-w-7xl mx-auto">
+              {children}
+            </div>
+            <div className="h-24 md:hidden"></div>
+          </main>
+        </div>
+
+        <Toaster position="top-center" richColors />
       </body>
     </html>
   );

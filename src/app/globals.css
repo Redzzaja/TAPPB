@@ -1,16 +1,25 @@
 @import "tailwindcss";
 
 @theme {
-  /* Palet Warna Hijau Alpukat */
+  /* Palet Warna Hijau Alpukat Lengkap */
   --color-primary-50: #f7fee7;
   --color-primary-100: #ecfccb;
-  --color-primary-500: #84cc16;
+  --color-primary-200: #d9f99d;
+  --color-primary-300: #bef264;
+  --color-primary-400: #a3e635;
+  --color-primary-500: #84cc16; /* Warna Utama */
   --color-primary-600: #65a30d;
   --color-primary-700: #4d7c0f;
+  --color-primary-800: #3f6212; /* Hijau Tua */
+  --color-primary-900: #365314; /* Hijau Sangat Tua (Untuk Card Bawah) */
+  --color-primary-950: #1a2e05;
 
   /* Warna Netral Tambahan */
   --color-gray-50: #f9fafb;
+  --color-gray-100: #f3f4f6;
+  --color-gray-200: #e5e7eb;
   --color-gray-800: #1f2937;
+  --color-gray-900: #111827;
 
   /* Shadow Custom */
   --shadow-soft: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
@@ -20,7 +29,6 @@
 body {
   background-color: var(--color-gray-50);
   color: var(--color-gray-800);
-  /* Supaya scrolling halus di HP */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }

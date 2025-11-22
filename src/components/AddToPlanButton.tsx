@@ -1,9 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, X, Loader2, Calendar as CalendarIcon } from "lucide-react";
+// Tambahkan CheckCircle2 ke sini
+import {
+  Plus,
+  X,
+  Loader2,
+  Calendar as CalendarIcon,
+  CheckCircle2,
+} from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 interface AddToPlanButtonProps {
   foodId: string;
@@ -32,14 +40,14 @@ export default function AddToPlanButton({
     } = await supabase.auth.getUser();
 
     if (!user) {
-      alert(
-        "Fitur ini butuh login. Karena kita belum buat halaman login, data akan gagal disimpan jika RLS aktif."
-      );
+      toast.error("Anda harus login terlebih dahulu!", {
+        description: "Silakan masuk untuk menyimpan jadwal.",
+      });
+      router.push("/login");
       setIsLoading(false);
       return;
     }
 
-    // 2. Insert Data
     const { error } = await supabase.from("meal_plans").insert({
       user_id: user.id,
       food_id: foodId,
@@ -49,12 +57,18 @@ export default function AddToPlanButton({
     });
 
     if (error) {
-      alert("Gagal menyimpan: " + error.message);
+      toast.error("Gagal menyimpan", { description: error.message });
     } else {
-      alert(`Berhasil menambahkan ${foodName} ke jadwal!`);
+      // GANTI ALERT DENGAN TOAST SUKSES
+      toast.success("Berhasil disimpan!", {
+        description: `${foodName} ditambahkan ke ${mealType}.`,
+        icon: <CheckCircle2 className="text-green-500" />,
+        duration: 3000,
+      });
+
       setIsOpen(false);
-      router.refresh(); // Refresh agar data terbaru terambil
-      router.push("/meals"); // Opsional: Pindah ke halaman jadwal
+      router.refresh();
+      // router.push('/meals'); // Opsional: Biarkan user tetap di halaman detail agar lebih fluid
     }
 
     setIsLoading(false);
