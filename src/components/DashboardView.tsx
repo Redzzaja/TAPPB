@@ -1,3 +1,4 @@
+// src/components/DashboardView.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -34,7 +35,12 @@ export default function DashboardView({ user }: { user: any }) {
   });
   const [recentMeals, setRecentMeals] = useState<any[]>([]);
 
+  // Ambil Nama dari Metadata (Profile), jika tidak ada baru pakai Email
+  const displayName =
+    user.user_metadata?.full_name || user.email?.split("@")[0] || "Foodie";
+
   useEffect(() => {
+    // Fix console warning Recharts
     const originalWarn = console.warn;
     const originalError = console.error;
     const filterMessage = (msg: any) => {
@@ -48,12 +54,10 @@ export default function DashboardView({ user }: { user: any }) {
       return false;
     };
     console.warn = (...args) => {
-      if (filterMessage(args[0])) return;
-      originalWarn.call(console, ...args);
+      if (!filterMessage(args[0])) originalWarn.call(console, ...args);
     };
     console.error = (...args) => {
-      if (filterMessage(args[0])) return;
-      originalError.call(console, ...args);
+      if (!filterMessage(args[0])) originalError.call(console, ...args);
     };
 
     setIsMounted(true);
@@ -95,8 +99,11 @@ export default function DashboardView({ user }: { user: any }) {
   };
 
   const currentCal = todayStats.calories || 0;
+  // Cegah error NaN/Infinity jika target 0
   const caloriePercentage =
-    Math.min((currentCal / TARGETS.calories) * 100, 100) || 0;
+    TARGETS.calories > 0
+      ? Math.min((currentCal / TARGETS.calories) * 100, 100)
+      : 0;
 
   const chartData = [
     { name: "Calories", value: caloriePercentage, fill: "#84cc16" },
@@ -112,11 +119,11 @@ export default function DashboardView({ user }: { user: any }) {
 
   return (
     <div className="space-y-8">
-      {/* Header */}
+      {/* Header: GUNAKAN displayName YANG SUDAH DIPERBAIKI */}
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-gray-800">
-            Halo, {user.email?.split("@")[0]}!
+            Halo, {displayName}!
           </h1>
           <p className="text-gray-500 text-sm">
             Ini ringkasan nutrisimu hari ini.

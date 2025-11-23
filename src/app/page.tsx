@@ -1,17 +1,17 @@
+// src/app/page.tsx
 "use client";
 
-import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/context/AuthContext"; // Gunakan Context Custom
 import Link from "next/link";
 import Image from "next/image";
 import {
   ArrowRight,
   Utensils,
+  Loader2,
   Activity,
+  ShieldCheck,
   Clock,
   ChevronRight,
-  ShieldCheck,
-  Loader2,
 } from "lucide-react";
 import DashboardView from "@/components/DashboardView";
 
@@ -19,7 +19,7 @@ import DashboardView from "@/components/DashboardView";
 function LandingPage() {
   return (
     <div className="min-h-screen bg-gray-50 pb-24">
-      {/* 1. HERO SECTION */}
+      {/* HERO SECTION */}
       <section className="relative w-full min-h-[600px] flex items-center justify-center overflow-hidden pt-10 pb-40">
         <div className="absolute inset-0 z-0">
           <Image
@@ -29,7 +29,7 @@ function LandingPage() {
             className="object-cover"
             priority
           />
-          <div className="absolute inset-0 bg-linear-to-b from-black/80 via-black/60 to-gray-50/95"></div>
+          <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/60 to-gray-50/95"></div>
         </div>
 
         <div className="relative z-10 max-w-5xl mx-auto px-6 text-center space-y-6">
@@ -65,7 +65,7 @@ function LandingPage() {
         </div>
       </section>
 
-      {/* 2. FEATURES */}
+      {/* FEATURES SECTION */}
       <div className="max-w-6xl mx-auto px-6 -mt-24 relative z-20">
         <div className="bg-white rounded-[2.5rem] shadow-xl border border-gray-200 p-8 md:p-12">
           <div className="text-center mb-10">
@@ -89,7 +89,6 @@ function LandingPage() {
                 Pantau asupan harianmu dengan grafik visual.
               </p>
             </div>
-
             <div className="flex flex-col items-center text-center p-6 rounded-3xl bg-gray-50 border border-gray-100">
               <div className="w-16 h-16 bg-primary-600 text-white rounded-2xl flex items-center justify-center mb-4 shadow-md">
                 <ShieldCheck size={32} />
@@ -101,7 +100,6 @@ function LandingPage() {
                 Pastikan makro nutrisi seimbang setiap harinya.
               </p>
             </div>
-
             <div className="flex flex-col items-center text-center p-6 rounded-3xl bg-gray-50 border border-gray-100">
               <div className="w-16 h-16 bg-blue-600 text-white rounded-2xl flex items-center justify-center mb-4 shadow-md">
                 <Clock size={32} />
@@ -117,7 +115,7 @@ function LandingPage() {
         </div>
       </div>
 
-      {/* 3. CTA SECTION */}
+      {/* CTA SECTION */}
       <section className="max-w-4xl mx-auto px-6 mt-20 text-center">
         <div className="bg-primary-900 rounded-[2.5rem] p-10 md:p-16 text-white shadow-lg relative overflow-hidden">
           <div className="relative z-10 space-y-6">
@@ -137,7 +135,7 @@ function LandingPage() {
             </div>
           </div>
         </div>
-        <p className="mt-12 text-gray-400 text-sm">&copy; 2024 MealPlan PWA.</p>
+        <p className="mt-12 text-gray-400 text-sm">&copy; 2025 MealPlan PWA.</p>
       </section>
     </div>
   );
@@ -145,19 +143,7 @@ function LandingPage() {
 
 // --- MAIN COMPONENT ---
 export default function HomePage() {
-  const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const checkSession = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      setUser(session?.user ?? null);
-      setLoading(false);
-    };
-    checkSession();
-  }, []);
+  const { user, loading } = useAuth();
 
   if (loading) {
     return (

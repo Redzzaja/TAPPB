@@ -1,3 +1,4 @@
+// src/app/meals/generate/page.tsx
 "use client";
 
 import { useState } from "react";
@@ -11,6 +12,7 @@ import {
   RefreshCw,
   Flame,
   Loader2,
+  CheckCircle2,
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -32,18 +34,16 @@ export default function GenerateMealPage() {
   const [targetCalories, setTargetCalories] = useState(2000);
   const [generatedPlan, setGeneratedPlan] = useState<DailyPlan[]>([]);
 
-  // 1. Algoritma Generator Cerdas
   const handleGenerate = async () => {
     setLoading(true);
     setGeneratedPlan([]);
 
     try {
-      // Fetch semua makanan dari DB
       const { data: foods, error } = await supabase.from("foods").select("*");
 
       if (error || !foods || foods.length < 4) {
         toast.error(
-          "Data makanan terlalu sedikit untuk di-generate. Tambahkan minimal 4 makanan (Breakfast, Lunch, Dinner, Snack)."
+          "Data makanan kurang. Tambahkan minimal 1 menu tiap kategori."
         );
         setLoading(false);
         return;
@@ -51,37 +51,49 @@ export default function GenerateMealPage() {
 
       const foodList = foods as Food[];
 
-      // Pisahkan kategori
-      const breakfastItems = foodList.filter((f) => f.category === "Breakfast");
-      const lunchItems = foodList.filter((f) => f.category === "Lunch");
-      const dinnerItems = foodList.filter((f) => f.category === "Dinner");
-      const snackItems = foodList.filter((f) => f.category === "Snack");
+      const categorized = {
+        Breakfast: foodList.filter((f) => f.category === "Breakfast"),
+        Lunch: foodList.filter((f) => f.category === "Lunch"),
+        Dinner: foodList.filter((f) => f.category === "Dinner"),
+        Snack: foodList.filter((f) => f.category === "Snack"),
+      };
 
-      // Helper: Ambil item acak
-      const getRandom = (arr: Food[]) =>
-        arr[Math.floor(Math.random() * arr.length)];
+      const targets = {
+        Breakfast: targetCalories * 0.25,
+        Lunch: targetCalories * 0.35,
+        Dinner: targetCalories * 0.3,
+        Snack: targetCalories * 0.1,
+      };
 
-      // Generate untuk 3 hari ke depan (Contoh)
+      const findClosest = (items: Food[], targetCal: number): Food | null => {
+        if (items.length === 0) return null;
+        const sorted = items.sort(
+          (a, b) =>
+            Math.abs(Number(a.calories) - targetCal) -
+            Math.abs(Number(b.calories) - targetCal)
+        );
+        const topChoices = sorted.slice(0, 3);
+        return topChoices[Math.floor(Math.random() * topChoices.length)];
+      };
+
       const newPlan: DailyPlan[] = [];
       const today = new Date();
 
       for (let i = 0; i < 3; i++) {
         const date = new Date(today);
-        date.setDate(today.getDate() + i + 1); // Mulai besok
+        date.setDate(today.getDate() + i + 1);
         const dateStr = date.toISOString().split("T")[0];
 
-        // Simple Logic: Pilih acak dari kategori
-        // (Bisa dikembangkan jadi algoritma Knapsack Problem untuk akurasi kalori tinggi)
-        const b = getRandom(breakfastItems) || getRandom(foodList);
-        const l = getRandom(lunchItems) || getRandom(foodList);
-        const d = getRandom(dinnerItems) || getRandom(foodList);
-        const s = getRandom(snackItems) || getRandom(foodList);
+        const b = findClosest(categorized.Breakfast, targets.Breakfast);
+        const l = findClosest(categorized.Lunch, targets.Lunch);
+        const d = findClosest(categorized.Dinner, targets.Dinner);
+        const s = findClosest(categorized.Snack, targets.Snack);
 
         const total =
-          (b?.calories || 0) +
-          (l?.calories || 0) +
-          (d?.calories || 0) +
-          (s?.calories || 0);
+          Number(b?.calories || 0) +
+          Number(l?.calories || 0) +
+          Number(d?.calories || 0) +
+          Number(s?.calories || 0);
 
         newPlan.push({
           date: dateStr,
@@ -94,7 +106,7 @@ export default function GenerateMealPage() {
       }
 
       setGeneratedPlan(newPlan);
-      toast.success("Rencana makan berhasil dibuat!");
+      toast.success("Menu berhasil dibuat sesuai target!");
     } catch (error) {
       console.error(error);
       toast.error("Gagal generate plan.");
@@ -103,10 +115,8 @@ export default function GenerateMealPage() {
     }
   };
 
-  // 2. Fungsi Simpan ke Database
   const handleSavePlan = async () => {
     setSaving(true);
-
     try {
       const {
         data: { user },
@@ -118,8 +128,6 @@ export default function GenerateMealPage() {
       }
 
       const inserts = [];
-
-      // Ratakan data plan menjadi baris-baris database
       for (const day of generatedPlan) {
         if (day.breakfast)
           inserts.push({
@@ -127,6 +135,7 @@ export default function GenerateMealPage() {
             date: day.date,
             meal_type: "Breakfast",
             food_id: day.breakfast.id,
+            is_completed: false,
           });
         if (day.lunch)
           inserts.push({
@@ -134,6 +143,7 @@ export default function GenerateMealPage() {
             date: day.date,
             meal_type: "Lunch",
             food_id: day.lunch.id,
+            is_completed: false,
           });
         if (day.dinner)
           inserts.push({
@@ -141,6 +151,7 @@ export default function GenerateMealPage() {
             date: day.date,
             meal_type: "Dinner",
             food_id: day.dinner.id,
+            is_completed: false,
           });
         if (day.snack)
           inserts.push({
@@ -148,14 +159,16 @@ export default function GenerateMealPage() {
             date: day.date,
             meal_type: "Snack",
             food_id: day.snack.id,
+            is_completed: false,
           });
       }
 
       const { error } = await supabase.from("meal_plans").insert(inserts);
-
       if (error) throw error;
 
-      toast.success("Jadwal berhasil disimpan!");
+      toast.success("Jadwal berhasil disimpan!", {
+        icon: <CheckCircle2 className="text-green-500" />,
+      });
       router.push("/meals");
     } catch (error: any) {
       toast.error("Gagal menyimpan: " + error.message);
@@ -165,7 +178,7 @@ export default function GenerateMealPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-24">
+    <div className="min-h-screen bg-gray-50 pb-32">
       {/* Header */}
       <div className="bg-white px-6 py-4 shadow-sm sticky top-0 z-20 flex items-center gap-4">
         <Link
@@ -181,15 +194,14 @@ export default function GenerateMealPage() {
         {/* --- INPUT TARGET --- */}
         <section className="bg-white p-6 rounded-3xl shadow-soft space-y-6">
           <div className="text-center">
-            <div className="w-16 h-16 bg-linear-to-br from-purple-500 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-purple-200 text-white">
+            <div className="w-16 h-16 bg-gradient-to-br from-primary-400 to-primary-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-primary-200 text-white">
               <Wand2 size={32} />
             </div>
             <h2 className="text-xl font-bold text-gray-800">
               Auto Plan Generator
             </h2>
             <p className="text-gray-500 text-sm">
-              Biarkan sistem memilihkan menu sehat untuk 3 hari ke depan sesuai
-              target kalorimu.
+              Sistem akan mencari kombinasi menu yang mendekati target kalorimu.
             </p>
           </div>
 
@@ -205,16 +217,19 @@ export default function GenerateMealPage() {
               <input
                 type="number"
                 value={targetCalories}
-                onChange={(e) => setTargetCalories(parseInt(e.target.value))}
-                className="w-full pl-12 pr-4 py-3 bg-gray-50 rounded-xl border-2 border-transparent focus:border-purple-500 outline-none font-bold text-gray-800"
+                onChange={(e) =>
+                  setTargetCalories(parseInt(e.target.value) || 0)
+                }
+                className="w-full pl-12 pr-4 py-3 bg-gray-50 rounded-xl border-2 border-transparent focus:border-primary-500 outline-none font-bold text-gray-800 text-lg"
               />
             </div>
           </div>
 
+          {/* TOMBOL GENERATE (DIPERBAIKI: Hijau) */}
           <button
             onClick={handleGenerate}
             disabled={loading}
-            className="w-full bg-gray-900 text-white font-bold py-4 rounded-2xl shadow-lg flex items-center justify-center gap-2 hover:bg-black transition active:scale-95 disabled:opacity-70"
+            className="w-full bg-primary-600 hover:bg-primary-700 text-white font-bold py-4 rounded-2xl shadow-lg shadow-primary-200 flex items-center justify-center gap-2 transition active:scale-95 disabled:opacity-70"
           >
             {loading ? (
               <Loader2 className="animate-spin" />
@@ -227,13 +242,13 @@ export default function GenerateMealPage() {
         {/* --- HASIL GENERATE --- */}
         {generatedPlan.length > 0 && (
           <section className="space-y-6 animate-in slide-in-from-bottom-10 fade-in duration-500">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between px-1">
               <h3 className="text-lg font-bold text-gray-800">
                 Hasil Rekomendasi
               </h3>
               <button
                 onClick={handleGenerate}
-                className="text-sm text-purple-600 font-bold flex items-center gap-1 hover:underline"
+                className="text-sm text-primary-600 font-bold flex items-center gap-1 hover:underline"
               >
                 <RefreshCw size={16} /> Acak Ulang
               </button>
@@ -246,15 +261,17 @@ export default function GenerateMealPage() {
                   className="bg-white p-4 rounded-3xl shadow-sm border border-gray-100"
                 >
                   <div className="flex justify-between items-center mb-4 border-b border-gray-50 pb-2">
-                    <span className="font-bold text-gray-800">
+                    <span className="font-bold text-gray-800 capitalize">
                       {new Date(day.date).toLocaleDateString("id-ID", {
                         weekday: "long",
                       })}
                     </span>
                     <span
                       className={`text-xs font-bold px-2 py-1 rounded-lg ${
-                        day.totalCalories > targetCalories
+                        day.totalCalories > targetCalories + 200
                           ? "bg-red-50 text-red-500"
+                          : day.totalCalories < targetCalories - 200
+                          ? "bg-yellow-50 text-yellow-600"
                           : "bg-green-50 text-green-600"
                       }`}
                     >
@@ -262,26 +279,29 @@ export default function GenerateMealPage() {
                     </span>
                   </div>
 
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     {[day.breakfast, day.lunch, day.dinner, day.snack].map(
                       (meal, i) =>
                         meal ? (
                           <div key={i} className="flex items-center gap-3">
-                            <div className="relative w-10 h-10 rounded-xl overflow-hidden bg-gray-100 shrink-0">
+                            <div className="relative w-10 h-10 rounded-xl overflow-hidden bg-gray-100 shrink-0 border border-gray-100">
                               <Image
-                                src={meal.image_url || "/placeholder.png"}
+                                src={
+                                  meal.image_url || "https://placehold.co/100"
+                                }
                                 alt={meal.name}
                                 fill
                                 className="object-cover"
                               />
                             </div>
-                            <div className="min-w-0">
+                            <div className="min-w-0 flex-1">
                               <p className="text-xs font-bold text-gray-800 truncate">
                                 {meal.name}
                               </p>
-                              <p className="text-[10px] text-gray-400">
-                                {meal.calories} kcal
-                              </p>
+                              <div className="flex justify-between text-[10px] text-gray-400 mt-0.5">
+                                <span>{meal.category}</span>
+                                <span>{meal.calories} kcal</span>
+                              </div>
                             </div>
                           </div>
                         ) : null
@@ -290,26 +310,29 @@ export default function GenerateMealPage() {
                 </div>
               ))}
             </div>
-
-            {/* Tombol Simpan */}
-            <div className="sticky bottom-6">
-              <button
-                onClick={handleSavePlan}
-                disabled={saving}
-                className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-4 rounded-2xl shadow-xl shadow-purple-200 flex items-center justify-center gap-2 transition transform active:scale-95"
-              >
-                {saving ? (
-                  <Loader2 className="animate-spin" />
-                ) : (
-                  <>
-                    <Save size={20} /> Simpan ke Jadwal Saya
-                  </>
-                )}
-              </button>
-            </div>
           </section>
         )}
       </div>
+
+      {/* --- FIXED BOTTOM BUTTON (UI FIX) --- */}
+      {generatedPlan.length > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/80 backdrop-blur-md border-t border-gray-200 md:static md:bg-transparent md:border-none md:p-0 md:mt-8 z-[60] max-w-3xl mx-auto">
+          {/* TOMBOL SIMPAN (DIPERBAIKI: Hijau) */}
+          <button
+            onClick={handleSavePlan}
+            disabled={saving}
+            className="w-full bg-primary-600 hover:bg-primary-700 text-white font-bold py-4 rounded-2xl shadow-xl shadow-primary-200 flex items-center justify-center gap-2 transition transform active:scale-95 disabled:opacity-70"
+          >
+            {saving ? (
+              <Loader2 className="animate-spin" />
+            ) : (
+              <>
+                <Save size={20} /> Simpan ke Jadwal Saya
+              </>
+            )}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

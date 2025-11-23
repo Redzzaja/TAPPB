@@ -1,9 +1,10 @@
+// src/app/food-detail/page.tsx
 "use client";
 
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import { ChevronLeft, Heart, Loader2, AlertCircle } from "lucide-react";
+import { ChevronLeft, AlertCircle, Loader2 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import AddToPlanButton from "@/components/AddToPlanButton";
@@ -85,7 +86,7 @@ function FoodDetailContent() {
   }
 
   return (
-    <div className="bg-white min-h-screen pb-28 md:pb-10 md:bg-gray-50">
+    <div className="bg-white min-h-screen pb-32 md:pb-10 md:bg-gray-50">
       <div className="max-w-5xl mx-auto md:pt-8 md:grid md:grid-cols-2 md:gap-10 md:items-start">
         {/* BAGIAN GAMBAR */}
         <div className="relative h-80 md:h-[450px] w-full md:rounded-3xl md:overflow-hidden md:shadow-2xl group bg-gray-100">
@@ -185,15 +186,14 @@ function FoodDetailContent() {
         </div>
       </div>
 
-      {/* Sticky Button Mobile */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-100 z-20 md:hidden pb-safe">
+      {/* Sticky Button Mobile - DIPERBAIKI: z-60 agar di atas navbar (z-50) */}
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-100 z-[60] md:hidden pb-safe shadow-[0_-4px_20px_rgba(0,0,0,0.1)]">
         <AddToPlanButton foodId={foodItem.id} foodName={foodItem.name} />
       </div>
     </div>
   );
 }
 
-// Wajib dibungkus Suspense karena menggunakan useSearchParams
 export default function FoodDetailPage() {
   return (
     <Suspense fallback={<div className="p-10 text-center">Loading...</div>}>

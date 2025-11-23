@@ -1,7 +1,7 @@
+// src/components/AddToPlanButton.tsx
 "use client";
 
 import { useState } from "react";
-// Tambahkan CheckCircle2 ke sini
 import {
   Plus,
   X,
@@ -25,22 +25,17 @@ export default function AddToPlanButton({
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-
-  // Form State
-  const [date, setDate] = useState(new Date().toISOString().split("T")[0]); // Default hari ini
+  const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
   const [mealType, setMealType] = useState("Breakfast");
 
-  // Fungsi Simpan ke Supabase
   const handleSave = async () => {
     setIsLoading(true);
-
-    // 1. Cek User Login (Karena tabel meal_plans butuh user_id)
     const {
       data: { user },
     } = await supabase.auth.getUser();
 
     if (!user) {
-      toast.error("Anda harus login terlebih dahulu!", {
+      toast.error("Login dulu!", {
         description: "Silakan masuk untuk menyimpan jadwal.",
       });
       router.push("/login");
@@ -59,38 +54,30 @@ export default function AddToPlanButton({
     if (error) {
       toast.error("Gagal menyimpan", { description: error.message });
     } else {
-      // GANTI ALERT DENGAN TOAST SUKSES
       toast.success("Berhasil disimpan!", {
         description: `${foodName} ditambahkan ke ${mealType}.`,
         icon: <CheckCircle2 className="text-green-500" />,
-        duration: 3000,
       });
-
       setIsOpen(false);
       router.refresh();
-      // router.push('/meals'); // Opsional: Biarkan user tetap di halaman detail agar lebih fluid
     }
-
     setIsLoading(false);
   };
 
   return (
     <>
-      {/* --- TRIGGER BUTTON (TOMBOL UTAMA) --- */}
+      {/* TOMBOL TRIGGER (DIPERBAIKI: Hijau) */}
       <button
         onClick={() => setIsOpen(true)}
-        className="w-full bg-gray-900 text-white font-bold py-4 rounded-2xl shadow-lg active:scale-95 transition transform flex items-center justify-center gap-2 hover:bg-gray-800"
+        className="w-full bg-primary-600 hover:bg-primary-700 text-white font-bold py-4 rounded-2xl shadow-lg shadow-primary-200 active:scale-95 transition transform flex items-center justify-center gap-2"
       >
         <Plus size={20} />
         Tambahkan ke Jadwal
       </button>
 
-      {/* --- MODAL POPUP --- */}
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-          {/* Card Modal */}
+        <div className="fixed inset-0 z-[100] flex items-end md:items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
           <div className="bg-white w-full max-w-md rounded-3xl p-6 shadow-2xl animate-in slide-in-from-bottom-10 duration-300">
-            {/* Header Modal */}
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-lg font-bold text-gray-800">
                 Atur Jadwal Makan
@@ -103,7 +90,6 @@ export default function AddToPlanButton({
               </button>
             </div>
 
-            {/* Nama Makanan */}
             <div className="mb-6 p-4 bg-primary-50 rounded-2xl border border-primary-100">
               <p className="text-xs text-primary-600 font-bold uppercase mb-1">
                 Makanan Terpilih
@@ -111,9 +97,7 @@ export default function AddToPlanButton({
               <p className="text-lg font-bold text-gray-800">{foodName}</p>
             </div>
 
-            {/* Form Input */}
             <div className="space-y-4 mb-8">
-              {/* Input Tanggal */}
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2">
                   Pilih Tanggal
@@ -132,7 +116,6 @@ export default function AddToPlanButton({
                 </div>
               </div>
 
-              {/* Input Waktu Makan */}
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2">
                   Waktu Makan
@@ -155,11 +138,11 @@ export default function AddToPlanButton({
               </div>
             </div>
 
-            {/* Tombol Simpan */}
+            {/* TOMBOL SIMPAN (DIPERBAIKI: Hijau) */}
             <button
               onClick={handleSave}
               disabled={isLoading}
-              className="w-full bg-primary-600 text-white font-bold py-4 rounded-2xl shadow-lg hover:bg-primary-700 disabled:opacity-70 flex items-center justify-center gap-2"
+              className="w-full bg-primary-600 hover:bg-primary-700 text-white font-bold py-4 rounded-2xl shadow-lg shadow-primary-200 disabled:opacity-70 flex items-center justify-center gap-2"
             >
               {isLoading ? (
                 <Loader2 className="animate-spin" />

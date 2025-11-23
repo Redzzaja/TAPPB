@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { useAuth } from "@/context/AuthContext";
 import {
   LogOut,
   User,
@@ -15,98 +16,100 @@ import {
   Loader2,
 } from "lucide-react";
 
+// --- IMPORT CAPACITOR NOTIFICATIONS ---
+import { LocalNotifications } from "@capacitor/local-notifications";
+
 export default function ProfilePage() {
   const router = useRouter();
-  const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const { user, refreshUser, loading } = useAuth();
 
-  // State untuk Fitur
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [fullName, setFullName] = useState("");
   const [saving, setSaving] = useState(false);
   const [notifEnabled, setNotifEnabled] = useState(false);
 
   useEffect(() => {
-    const getUser = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      if (!session) {
-        router.push("/login");
-      } else {
-        setUser(session.user);
-        // Ambil nama dari metadata jika ada
-        setFullName(session.user.user_metadata?.full_name || "");
-      }
-      setLoading(false);
-    };
+    if (!loading && !user) router.push("/login");
+    if (user) setFullName(user.user_metadata?.full_name || "");
 
-    getUser();
+    // Cek status izin notifikasi saat load
+    checkPermission();
+  }, [user, loading, router]);
 
-    // Cek izin notifikasi saat ini
-    if (typeof window !== "undefined" && "Notification" in window) {
-      setNotifEnabled(Notification.permission === "granted");
-    }
-  }, [router]);
+  // Fungsi Cek Izin
+  const checkPermission = async () => {
+    const status = await LocalNotifications.checkPermissions();
+    setNotifEnabled(status.display === "granted");
+  };
 
-  // --- FUNGSI 1: UPDATE PROFIL (Nama Lengkap) ---
   const handleUpdateProfile = async () => {
     if (!fullName.trim()) return;
     setSaving(true);
-
-    const { data, error } = await supabase.auth.updateUser({
+    const { error } = await supabase.auth.updateUser({
       data: { full_name: fullName },
     });
-
     if (error) {
-      toast.error("Gagal memperbarui profil", { description: error.message });
+      toast.error("Gagal update profil");
     } else {
       toast.success("Profil diperbarui!");
-      setUser(data.user); // Update state lokal
+      await refreshUser();
       setIsEditModalOpen(false);
     }
     setSaving(false);
   };
 
-  // --- FUNGSI 2: TOGGLE NOTIFIKASI ---
+  // --- FUNGSI BARU UNTUK NOTIFIKASI ---
   const handleToggleNotification = async () => {
-    if (!("Notification" in window)) {
-      toast.error("Browser ini tidak mendukung notifikasi.");
-      return;
-    }
-
     if (notifEnabled) {
+      // Matikan notifikasi (sebenarnya hanya membatalkan jadwal)
+      // Di mobile, kita tidak bisa 'mencabut' izin via kode, user harus ke settings.
+      // Jadi kita hanya membatalkan notifikasi yang terjadwal.
+      await LocalNotifications.cancel({ notifications: [{ id: 1 }] });
       setNotifEnabled(false);
-      toast.info("Notifikasi dinonaktifkan.");
+      toast.info("Pengingat makan dimatikan.");
     } else {
-      const permission = await Notification.requestPermission();
-      if (permission === "granted") {
+      // Minta Izin
+      const result = await LocalNotifications.requestPermissions();
+      if (result.display === "granted") {
         setNotifEnabled(true);
-        toast.success("Notifikasi diaktifkan!", {
-          description: "Kami akan mengingatkan jadwal makanmu.",
+
+        // Jadwalkan Notifikasi Percobaan (5 detik dari sekarang)
+        await LocalNotifications.schedule({
+          notifications: [
+            {
+              title: "Pengingat Makan Aktif! 🍽️",
+              body: "Kami akan mengingatkanmu untuk makan sehat.",
+              id: 1,
+              schedule: { at: new Date(Date.now() + 5000) }, // Muncul 5 detik lagi
+              sound: undefined,
+              attachments: undefined,
+              actionTypeId: "",
+              extra: null,
+            },
+          ],
         });
-        new Notification("Halo Foodie!", {
-          body: "Notifikasi Meal Planner aktif.",
+
+        toast.success("Notifikasi diaktifkan!", {
+          description: "Tes notifikasi akan muncul dalam 5 detik.",
         });
       } else {
-        toast.warning("Izin notifikasi ditolak. Cek pengaturan browser.");
+        toast.warning("Izin notifikasi ditolak.");
       }
     }
   };
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
+    await refreshUser();
     router.push("/login");
   };
 
   if (loading)
-    return (
-      <div className="p-10 text-center text-gray-400">Memuat profil...</div>
-    );
+    return <div className="p-10 text-center text-gray-400">Memuat...</div>;
 
   return (
     <div className="min-h-screen bg-gray-50 pb-24 space-y-6">
-      {/* --- 1. HEADER PROFIL --- */}
+      {/* ... (Bagian Header Profil SAMA seperti sebelumnya) ... */}
       <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
         <div className="flex items-center gap-4">
           <div className="w-20 h-20 bg-gradient-to-br from-primary-100 to-primary-200 rounded-full flex items-center justify-center text-primary-600 shadow-inner border-4 border-white">
@@ -114,20 +117,19 @@ export default function ProfilePage() {
           </div>
           <div className="flex-1 min-w-0">
             <h1 className="text-xl font-bold text-gray-900 truncate">
-              {user?.user_metadata?.full_name || "Halo, Foodie!"}
+              {user?.user_metadata?.full_name || "Foodie"}
             </h1>
             <p className="text-sm text-gray-500 truncate">{user?.email}</p>
             <span className="inline-block mt-2 px-3 py-1 bg-primary-50 text-primary-700 text-[10px] font-bold uppercase tracking-wide rounded-full">
-              Member Free
+              Member
             </span>
           </div>
         </div>
       </div>
 
-      {/* --- 2. MENU PENGATURAN --- */}
+      {/* Menu Pengaturan */}
       <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="divide-y divide-gray-50">
-          {/* Edit Nama */}
           <button
             onClick={() => setIsEditModalOpen(true)}
             className="w-full flex items-center justify-between p-5 hover:bg-gray-50 transition text-left active:bg-gray-100"
@@ -143,7 +145,6 @@ export default function ProfilePage() {
             <ChevronRight size={18} className="text-gray-300" />
           </button>
 
-          {/* Toggle Notifikasi */}
           <div className="w-full flex items-center justify-between p-5">
             <div className="flex items-center gap-4">
               <div className="p-2 bg-purple-50 text-purple-600 rounded-xl">
@@ -153,7 +154,7 @@ export default function ProfilePage() {
                 Notifikasi Makan
               </span>
             </div>
-
+            {/* Tombol Toggle Notifikasi */}
             <button
               onClick={handleToggleNotification}
               className={`w-12 h-7 flex items-center rounded-full p-1 transition-colors duration-300 ${
@@ -170,20 +171,14 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* --- 3. TOMBOL LOGOUT --- */}
       <button
         onClick={handleLogout}
         className="w-full bg-white border-2 border-red-50 text-red-500 font-bold py-4 rounded-2xl flex items-center justify-center gap-2 hover:bg-red-50 hover:border-red-100 transition shadow-sm active:scale-95"
       >
-        <LogOut size={20} />
-        Keluar Aplikasi
+        <LogOut size={20} /> Keluar Aplikasi
       </button>
 
-      <p className="text-center text-xs text-gray-300 pt-4">
-        Versi Aplikasi 2.2.0 (Build 2025)
-      </p>
-
-      {/* --- MODAL EDIT PROFIL --- */}
+      {/* ... (Modal Edit Profil SAMA seperti sebelumnya) ... */}
       {isEditModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
           <div className="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl">
@@ -196,7 +191,6 @@ export default function ProfilePage() {
                 <X size={20} />
               </button>
             </div>
-
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-bold text-gray-600 mb-2">
@@ -206,11 +200,9 @@ export default function ProfilePage() {
                   type="text"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  placeholder="Masukkan nama..."
                   className="w-full p-3 bg-gray-50 rounded-xl border-2 border-transparent focus:border-primary-500 focus:bg-white outline-none font-medium"
                 />
               </div>
-
               <button
                 onClick={handleUpdateProfile}
                 disabled={saving}
