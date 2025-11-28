@@ -187,7 +187,7 @@ function FoodDetailContent() {
       </div>
 
       {/* Sticky Button Mobile - DIPERBAIKI: z-60 agar di atas navbar (z-50) */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-100 z-[60] md:hidden pb-safe shadow-[0_-4px_20px_rgba(0,0,0,0.1)]">
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-100 z-60 md:hidden pb-safe shadow-[0_-4px_20px_rgba(0,0,0,0.1)]">
         <AddToPlanButton foodId={foodItem.id} foodName={foodItem.name} />
       </div>
     </div>

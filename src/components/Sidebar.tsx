@@ -63,7 +63,7 @@ function NavItem({ href, icon, label, isMobile = false }: NavItemProps) {
     >
       {/* Icon tetap diam */}
       <div
-        className={`flex-shrink-0 ${
+        className={`shrink-0 ${
           isActive
             ? "text-white"
             : "text-gray-400 group-hover/item:text-primary-500"
@@ -73,7 +73,7 @@ function NavItem({ href, icon, label, isMobile = false }: NavItemProps) {
       </div>
 
       {/* Label dengan Fade In/Out */}
-      <span className="font-semibold text-sm whitespace-nowrap opacity-0 group-hover:opacity-100 transition-all duration-300 delay-100 translate-x-[-10px] group-hover:translate-x-0">
+      <span className="font-semibold text-sm whitespace-nowrap opacity-0 group-hover:opacity-100 transition-all duration-300 delay-100 -translate-x-2.5 group-hover:translate-x-0">
         {label}
       </span>
     </Link>
@@ -121,7 +121,7 @@ export default function Sidebar() {
       <aside className="hidden md:flex flex-col w-20 hover:w-[280px] fixed inset-y-0 left-0 bg-white border-r border-gray-100 z-50 px-3 py-8 transition-all duration-300 ease-in-out group shadow-sm hover:shadow-2xl overflow-hidden peer">
         {/* Logo */}
         <div className="flex items-center gap-4 px-2 mb-10 whitespace-nowrap">
-          <div className="w-10 h-10 bg-gradient-to-br from-primary-400 to-primary-600 rounded-xl flex-shrink-0 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-primary-200">
+          <div className="w-10 h-10 bg-linear-to-br from-primary-400 to-primary-600 rounded-xl shrink-0 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-primary-200">
             M
           </div>
           <span className="text-xl font-bold text-gray-900 tracking-tight opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-100">
@@ -130,7 +130,7 @@ export default function Sidebar() {
         </div>
 
         {/* Menu */}
-        <nav className="flex-grow space-y-2">
+        <nav className="grow space-y-2">
           <NavItem href="/" icon={<HomeIcon size={22} />} label="Beranda" />
           <NavItem
             href="/meals"
@@ -148,7 +148,7 @@ export default function Sidebar() {
         <div className="pt-6 border-t border-gray-100 mt-auto whitespace-nowrap overflow-hidden">
           {loading ? (
             <div className="flex items-center gap-4 px-2 animate-pulse">
-              <div className="w-8 h-8 bg-gray-200 rounded-full flex-shrink-0"></div>
+              <div className="w-8 h-8 bg-gray-200 rounded-full shrink-0"></div>
               <div className="h-4 w-20 bg-gray-200 rounded opacity-0 group-hover:opacity-100"></div>
             </div>
           ) : user ? (
@@ -162,10 +162,10 @@ export default function Sidebar() {
                 onClick={handleLogout}
                 className="flex items-center gap-4 py-3 px-4 rounded-2xl text-red-500 hover:bg-red-50 w-full text-left transition-all duration-200 group/logout"
               >
-                <div className="flex-shrink-0">
+                <div className="shrink-0">
                   <LogIn size={22} />
                 </div>
-                <span className="font-semibold text-sm opacity-0 group-hover:opacity-100 transition-all duration-300 delay-100 translate-x-[-10px] group-hover:translate-x-0">
+                <span className="font-semibold text-sm opacity-0 group-hover:opacity-100 transition-all duration-300 delay-100 -translate-x-2.5 group-hover:translate-x-0">
                   Keluar
                 </span>
               </button>
@@ -177,7 +177,7 @@ export default function Sidebar() {
       </aside>
 
       {/* --- 2. MOBILE BOTTOM NAV (Tetap) --- */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 pb-safe pt-2 px-6 z-50 h-[80px] flex justify-between items-start shadow-[0_-4px_20px_rgba(0,0,0,0.03)]">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 pb-safe pt-2 px-6 z-50 h-20 flex justify-between items-start shadow-[0_-4px_20px_rgba(0,0,0,0.03)]">
         <NavItem
           isMobile
           href="/"

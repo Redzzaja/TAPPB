@@ -102,9 +102,9 @@ export default function LoginPage() {
         </form>
 
         <div className="relative flex py-2 items-center">
-          <div className="flex-grow border-t border-gray-200"></div>
-          <span className="flex-shrink-0 mx-4 text-gray-400 text-xs">ATAU</span>
-          <div className="flex-grow border-t border-gray-200"></div>
+          <div className="grow border-t border-gray-200"></div>
+          <span className="shrink-0 mx-4 text-gray-400 text-xs">ATAU</span>
+          <div className="grow border-t border-gray-200"></div>
         </div>
 
         {/* Tombol Tamu */}

@@ -54,7 +54,7 @@ export default function Navigation() {
         {/* Logo Section */}
         <div className="text-2xl font-bold text-primary-600 mb-10 flex items-center gap-3 whitespace-nowrap">
           {/* Ikon Logo (Fixed) */}
-          <div className="w-10 h-10 bg-primary-600 rounded-lg flex-shrink-0 flex items-center justify-center text-white font-bold shadow-md">
+          <div className="w-10 h-10 bg-primary-600 rounded-lg shrink-0 flex items-center justify-center text-white font-bold shadow-md">
             M
           </div>
           {/* Teks Logo (Hidden saat collapse) */}
@@ -79,7 +79,7 @@ export default function Navigation() {
                 }`}
               >
                 {/* Ikon Menu */}
-                <div className="flex-shrink-0">
+                <div className="shrink-0">
                   <item.icon size={24} />
                 </div>
 

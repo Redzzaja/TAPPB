@@ -76,7 +76,7 @@ export default function AddToPlanButton({
       </button>
 
       {isOpen && (
-        <div className="fixed inset-0 z-[100] flex items-end md:items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-100 flex items-end md:items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
           <div className="bg-white w-full max-w-md rounded-3xl p-6 shadow-2xl animate-in slide-in-from-bottom-10 duration-300">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-lg font-bold text-gray-800">

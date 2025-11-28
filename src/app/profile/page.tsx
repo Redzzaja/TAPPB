@@ -112,7 +112,7 @@ export default function ProfilePage() {
       {/* ... (Bagian Header Profil SAMA seperti sebelumnya) ... */}
       <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
         <div className="flex items-center gap-4">
-          <div className="w-20 h-20 bg-gradient-to-br from-primary-100 to-primary-200 rounded-full flex items-center justify-center text-primary-600 shadow-inner border-4 border-white">
+          <div className="w-20 h-20 bg-linear-to-br from-primary-100 to-primary-200 rounded-full flex items-center justify-center text-primary-600 shadow-inner border-4 border-white">
             <User size={40} strokeWidth={1.5} />
           </div>
           <div className="flex-1 min-w-0">

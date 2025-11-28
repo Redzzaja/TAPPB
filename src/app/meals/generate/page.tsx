@@ -194,7 +194,7 @@ export default function GenerateMealPage() {
         {/* --- INPUT TARGET --- */}
         <section className="bg-white p-6 rounded-3xl shadow-soft space-y-6">
           <div className="text-center">
-            <div className="w-16 h-16 bg-gradient-to-br from-primary-400 to-primary-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-primary-200 text-white">
+            <div className="w-16 h-16 bg-linear-to-br from-primary-400 to-primary-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-primary-200 text-white">
               <Wand2 size={32} />
             </div>
             <h2 className="text-xl font-bold text-gray-800">
@@ -316,7 +316,7 @@ export default function GenerateMealPage() {
 
       {/* --- FIXED BOTTOM BUTTON (UI FIX) --- */}
       {generatedPlan.length > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/80 backdrop-blur-md border-t border-gray-200 md:static md:bg-transparent md:border-none md:p-0 md:mt-8 z-[60] max-w-3xl mx-auto">
+        <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/80 backdrop-blur-md border-t border-gray-200 md:static md:bg-transparent md:border-none md:p-0 md:mt-8 z-60 max-w-3xl mx-auto">
           {/* TOMBOL SIMPAN (DIPERBAIKI: Hijau) */}
           <button
             onClick={handleSavePlan}
